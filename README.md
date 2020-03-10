@@ -1,4 +1,21 @@
-# README Boilerplate
+# README
+
+
+1. Make a directory '/local'
+2. copy dataset into '/local' and rename it to 'data'
+    '/local/data/'
+3. rename the folders in '/local/data/' to '/0', '/1', '/2', '/3', '/4'.
+4. '''python path_sense.py'''
+
+
+
+
+
+######################
+
+
+
+
 
 A template of README best practices to make your README simple to understand and easy to use. 
 
