@@ -5,7 +5,7 @@
 2. copy dataset into '/local' and rename it to 'data'
     '/local/data/'
 3. rename the folders in '/local/data/' to '/0', '/1', '/2', '/3', '/4'.
-4. '''python path_sense.py'''
+4. `python path_sense.py`
 
 
 
