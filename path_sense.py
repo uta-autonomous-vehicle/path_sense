@@ -1,3 +1,4 @@
+import time
 import os
 import constants
 import numpy as np
@@ -13,18 +14,11 @@ import math
 IMAGE_HEIGHT = 720
 IMAGE_WIDTH = 1280
 
-low_H_name = 'Low H'
-low_S_name = 'Low S'
-low_V_name = 'Low V'
-high_H_name = 'High H'
-high_S_name = 'High S'
-high_V_name = 'High V'
-
 window_capture_name = 'Video Capture'
 window_detection_name = 'Object Detection'
 
-cv.namedWindow(window_capture_name)
-cv.namedWindow(window_detection_name)
+cv.namedWindow(window_capture_name, cv.WINDOW_NORMAL)
+cv.namedWindow(window_detection_name, cv.WINDOW_NORMAL)
 
 def intersection(line1, line2):
     """Finds the intersection of two lines given in Hesse normal form.
@@ -56,8 +50,8 @@ def write_on_image(img, text = ""):
 
 def show_image(name, img):
     # print "showing image ", name
-    cv.namedWindow(name, cv.WINDOW_NORMAL)
-    cv.resizeWindow(name, 500, 600)
+    # cv.namedWindow(name, cv.WINDOW_NORMAL)
+    cv.resizeWindow(name, 600, 300)
 
     cv.putText(img, "showing image:" + name, (200,200), cv.FONT_HERSHEY_COMPLEX_SMALL, 2, (255,255,255) )
     cv.imshow(name, img)
@@ -131,37 +125,32 @@ def detect_box_in_frame(frame):
 def get_bounding_boxes_for_objects(frame):
     contours, hierarchy = cv.findContours(frame, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     areas = {}
+    highest_x = 0
+    highest_y = 0
+    highest_w = 0
+    highest_h = 0
     for c in contours:
         area = cv.contourArea(c)
         print "area ", area
         # areas[c] = area
         x, y, w, h = cv.boundingRect(c)
+        if highest_w < w and highest_h < h:
+            highest_w = w
+            highest_h = h
+            highest_x = x
+            highest_y = y
         # cv.drawContours(frame, c, -1, (255, 255, 255), 3)
-        cv.rectangle(frame, (x,y), (x+w, y+h), (255, 255, 255), 2)
-    return frame
-
-
-low_H = 20
-low_S = 100
-low_V = 100
-
-high_H = 30
-high_S = 255
-high_V = 255
+        # cv.rectangle(frame, (x,y), (x+w, y+h), (255, 255, 255), 2)
+    
+    cv.rectangle(frame, (highest_x,highest_y), (highest_x+highest_w, highest_y+highest_h), (255, 255, 255), 2)
+    return (highest_x, highest_y), frame
 
 def filter_by_color(frame):
-    global low_H 
-    global low_S 
-    global low_V 
-
-    global high_H 
-    global high_S 
-    global high_V 
-
-    low_hsv = (low_H, low_S, low_V)
-    high_hsv = (high_H, high_S, high_V)
-
+    low_hsv = (20, 150, 150)
+    high_hsv = (30, 255, 255)
+    # high_hsv = (30, 255, 255)
     print "filtering yellow ", low_hsv, high_hsv
+    frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     filtered_frame = cv.inRange(frame, low_hsv, high_hsv )
 
     return filtered_frame
@@ -226,9 +215,7 @@ def show_canny_with_thres1(thres1, thres2, thresh3, thresh4):
             #     continue
             image2 = np.zeros((720, 1280))
 
-
-            hsv_image = cv.cvtColor(image, cv.COLOR_RGB2HSV)
-            frame_new = filter_by_color(hsv_image)
+            frame_new = filter_by_color(image)
 
             # frame_new = get_frame_for_ordinates(image, -320, -155, 640, 310)
             # frame_new = image[min_height:max_height, min_width:max_width]
@@ -243,74 +230,27 @@ def show_canny_with_thres1(thres1, thres2, thresh3, thresh4):
             # # maxes = np.argmax(maxes)
             
             # p_value = detect_box_in_frame(frame_new)
-            frame_new = get_bounding_boxes_for_objects(frame_new)
+            (x1, y1), frame_new = get_bounding_boxes_for_objects(frame_new)
             # x_center_of_target_in_new_frame = int((frame_new.shape[1] * p_value))
             # print "p_value {} x_center_of_target_in_new_frame ".format(p_value)
             # import pdb; pdb.set_trace()
-            # draw_line(frame_new, frame_new.shape[1]/2, frame_new.shape[0], x_center_of_target_in_new_frame , 0)
+            draw_line(frame_new, frame_new.shape[1]/2, frame_new.shape[0], x1, y1)
             # draw_line(image, image.shape[1]/2, image.shape[0], p_value , 0)
 
             # # center point
-            # draw_line(frame_new, frame_new.shape[1]/2, 0, frame_new.shape[1]/2, frame_new.shape[1])
+            draw_line(frame_new, frame_new.shape[1]/2, 0, frame_new.shape[1]/2, frame_new.shape[1])
             # draw_line(image, image.shape[1]/2, 0, image.shape[1]/2, image.shape[1])
 
-
-            def on_low_H_thresh_trackbar(val):
-                global low_H
-                global high_H
-                low_H = val
-                # low_H = min(high_H-1, low_H)
-                cv.setTrackbarPos(low_H_name, window_detection_name, low_H)
-            def on_high_H_thresh_trackbar(val):
-                global low_H
-                global high_H
-                high_H = val
-                # high_H = max(high_H, low_H+1)
-                cv.setTrackbarPos(high_H_name, window_detection_name, high_H)
-            def on_low_S_thresh_trackbar(val):
-                global low_S
-                global high_S
-                low_S = val
-                # low_S = min(high_S-1, low_S)
-                cv.setTrackbarPos(low_S_name, window_detection_name, low_S)
-            def on_high_S_thresh_trackbar(val):
-                global low_S
-                global high_S
-                high_S = val
-                # high_S = max(high_S, low_S+1)
-                cv.setTrackbarPos(high_S_name, window_detection_name, high_S)
-            def on_low_V_thresh_trackbar(val):
-                global low_V
-                global high_V
-                low_V = val
-                # low_V = min(high_V-1, low_V)
-                cv.setTrackbarPos(low_V_name, window_detection_name, low_V)
-            def on_high_V_thresh_trackbar(val):
-                global low_V
-                global high_V
-                high_V = val
-                # high_V = max(high_V, low_V+1)
-                cv.setTrackbarPos(high_V_name, window_detection_name, high_V)
-
-
-            max_value = 255
-            max_value_H = 360//2
-
-            cv.createTrackbar(low_H_name, window_detection_name , low_H, max_value_H, on_low_H_thresh_trackbar)
-            cv.createTrackbar(low_S_name, window_detection_name , low_S, max_value, on_low_S_thresh_trackbar)
-            cv.createTrackbar(low_V_name, window_detection_name , low_V, max_value, on_low_V_thresh_trackbar)
-
-            cv.createTrackbar(high_H_name, window_detection_name , high_H, max_value_H, on_high_H_thresh_trackbar)
-            cv.createTrackbar(high_S_name, window_detection_name , high_S, max_value, on_high_S_thresh_trackbar)
-            cv.createTrackbar(high_V_name, window_detection_name , high_V, max_value, on_high_V_thresh_trackbar)
-
-            # show_image(window_capture_name, image)
+            show_image(window_capture_name, image)
             show_image(window_detection_name, frame_new)
 
             # Follower().image_callback(image)
 
             if cv.waitKey(1) == ord('q'):
                 break
+            if cv.waitKey(1) == ord('w'):
+                time.sleep(1000.0)
+            
 
         print "***"
         # print(len(dataset[0]))
@@ -327,3 +267,6 @@ for i in range(90,150, 20):
                 # print("thesh ", i, j)
                 print("canny ", k, l)
                 show_canny_with_thres1(k,l, i,j )
+
+first_image = os.listdir(os.path.join(os.listdir(os.path.abspath(constants.IMAGE_DIR))[0], "left_camera"))
+im = cv.imread()
