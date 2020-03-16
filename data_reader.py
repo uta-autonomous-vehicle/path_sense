@@ -7,7 +7,7 @@ import tensorflow as tf
 
 class ImageStream(object):
     def __init__(self, source_dir):
-        self.feed_map = {x:source_dir + x for x in os.listdir(source_dir)}
+        self.feed_map = {x:os.path.join(source_dir, x) for x in os.listdir(source_dir)}
         self.feed = sorted([i for i in self.feed_map.keys()])
     
     def get_next(self):
