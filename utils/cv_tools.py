@@ -1,4 +1,5 @@
 import time
+import math
 import os
 import numpy as np
 from PIL import Image
@@ -37,7 +38,7 @@ class CVTools(object):
         cv.line(self.image,start, end, (255,255,255), 2)
     
     def reduce_to_gray(self):
-        self.image = cv.cvtColor(self.image, cv.COLOR_RGB2GRAY)
+        self.image = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
     
     def reduce_to_hsv(self):
         self.image = cv.cvtColor(self.image, cv.COLOR_BGR2HSV)
@@ -70,9 +71,11 @@ class CVTools(object):
         return (maxes_sorted * 50) / (self.image.shape[1]*0.1)
     
     def filter_color(self, low, high):
-        low_hsv = low
-        high_hsv = high
-        
+        # NOTE: color space is different for opencv  - [(0-179), (0-255), (0-255)] vs [(0-360), (0-100), (0-100)]
+        multiplier_hsv_for_opencv = [0.5, 2.55, 2.55]
+        low_hsv = np.multiply(low, multiplier_hsv_for_opencv)
+        high_hsv = np.multiply(high, multiplier_hsv_for_opencv)
+
         self.reduce_to_hsv()
         self.image = cv.inRange(self.image, low_hsv, high_hsv )
 
@@ -85,19 +88,56 @@ class CVTools(object):
         contours = self.get_contours()
         areas = []
         shape = self.image.shape
-        new_image = np.zeros((shape[0], shape[1]), dtype = np.uint8)
+
+        # NOTE: new_image displays in RBG
+        new_image = np.zeros((shape[0], shape[1], 3), dtype = np.uint8)
         for i, c in enumerate(contours):
             area = cv.contourArea(c)
-            hull = cv.convexHull(c)
+            # hull = cv.convexHull(c)
             x, y, w, h = cv.boundingRect(c)
-            areas.append(((x,y,x+w,y+h), area))
+            areas.append([x, y, w, h, area])
 
             if draw:
+                cv.rectangle(self.image, (x,y), (x+w, y+h), (255, 255, 0), 1)
+                cv.rectangle(new_image, (x,y), (x+w, y+h), (0, 0, 200), 1)
+                # cv.drawContours(self.image, hull, -1, (255, 255, 255), 1)
                 if area > 10 and area < 100:
                     self.add_text_to_image("area:{}".format(area), (x,y))
-                cv.rectangle(self.image, (x,y), (x+w, y+h), (255, 255, 0), 2)
-                # cv.drawContours(self.image, hull, -1, (255, 255, 255), 1)
+                if w > 30:
+                    # NOTE: showing nearest and widest detected shapes
+                    cv.rectangle(new_image, (x,y), (x+w, y+h), (255, 0, 0), 1)
+
+                    x_offset = ((2*x) + w)/2 - 50
+                    y_offset = ((2*y) + h)/2 - 50
+                    if y > self.image.shape[0]/2 and w > 50:
+                        cv.rectangle(new_image, (x,y), (x+50, y+50), (255, 255, 0), 1)
         
+        new_image = cv.cvtColor(new_image, cv.COLOR_RGB2BGR)
+        CVTools(new_image).display_image('medium', 'processing_boxing')
         return areas
 
+    def get_closest_box(self, boxes):
+        # TODO: finish implementation. return closest big box
+        """ 
+            image for opencv indexes (0,0) from top left
 
+            boxes: list of boxes np array values:[ [x, y, w, h] ]
+            rtype: (x, y, w, h)
+        """
+
+        sorted_by_w = boxes[(-boxes[:,3]).argsort()][:3]
+        sorted_by_y = sorted_by_w[(-sorted_by_w[:,2]).argsort()]
+
+        return sorted_by_y[0]
+    
+    def angle_between_lines(self, line1, line2):
+        # TODO: finish implementation. return closest big box
+        """
+            return angle for the 
+
+            line1: ((x,y), (x,y)) start and end co-ordinates for line
+            line2: ((x,y), (x,y)) start and end co-ordinates for line
+        """
+        theta = 0
+        
+        return theta

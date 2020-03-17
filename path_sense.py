@@ -72,21 +72,34 @@ def detect_lines(thres1, thres2, thresh3, thresh4):
             image2 = np.zeros((720, 1280))
 
             processed = CVTools(image)
-            processed.filter_color((30, 100, 100), (30, 255, 255))
-            processed.get_bounding_box()
+            # NOTE: http://www.flatuicolorpicker.com/yellow-hsv-color-model
+            processed.filter_color((60, 35, 35), (64, 100, 100))
+            processed.display_image('small', 'original_image')
+            # continue
+            areas = processed.get_bounding_box()
 
             y,x = processed.image.shape
             processed.draw_line((x/2, 0), (x/2, y))
+            
+            if areas:
+                bx,by,bw,bh = processed.get_closest_box(np.array(areas)[:,:4])
+                x1, y1, x2, y2 = x/2, y, int(bx), int(by)
+                processed.draw_line((x1,y1),(x2,y2))
 
-            processed.display_image('large', '1')
+                line1 = ((x1,y1),(x2,y2))
+                line2 = ((x/2, 0), (x/2, y))
+                print processed.angle_between_lines(line1, line2)
+
+            processed.display_image('small', 'processed_image')
+
 
             if cv.waitKey(1) == ord('q'):
+                cv.destroyAllWindows()
                 break
-            if cv.waitKey(1) == ord('w'):
-                time.sleep(1000.0)
             
             # time.sleep(0.3)
-
-        print "***"
+            print "**********"
+        
+        cv.destroyAllWindows()
 
 detect_lines(0,0,0,0)
