@@ -91,7 +91,7 @@ def detect_lines(thres1, thres2, thresh3, thresh4):
                 print processed.angle_between_lines(line1, line2)
 
             processed.display_image('small', 'processed_image')
-
+            CVTools(image).display_image('small', 'original_image_rgb')
 
             if cv.waitKey(1) == ord('q'):
                 cv.destroyAllWindows()
