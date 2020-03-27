@@ -11,10 +11,21 @@ import pdb
 from test import Follower
 import math
 
+from logger import logger
+
 
 class CVTools(object):
+    """
+        All processing is stored locally when using an instance of this object. to self.image
+        No methods return self, do hierarchical calling isn't possible.
+
+    """
     def __init__(self, image):
+        self.original_image = image
         self.image = image
+        self.image_shape = image.shape
+
+        self.offset_mapped_image = None
         return
     
     def display_image(self, size = 'small', name = 'default'):
@@ -34,8 +45,11 @@ class CVTools(object):
     def draw_circle(self, position):
         cv.circle(self.image, position, 100, (255,255,255), -1)
     
-    def draw_line(self, start, end):
-        cv.line(self.image,start, end, (255,255,255), 2)
+    def draw_rectangle(self, p1, p2):
+        cv.rectangle(self.image, p1, p2, (255,255,255), 2)
+    
+    def draw_line(self, start, end, color = (255, 255, 255)):
+        cv.line(self.image,start, end, color, 2)
     
     def reduce_to_gray(self):
         self.image = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
@@ -83,38 +97,76 @@ class CVTools(object):
         # TODO: try other modes
         contours, hierarchy = cv.findContours(self.image, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         return contours
+    
+    def detect_lines(self):
+        return
+    
+    def get_offset_from_center_in_rectangle_space(self, i, p1 = (0,0), p2 = (0,01)):
+        y,x = self.image.shape
+        self.offset_mapped_image = self.offset_mapped_image or CVTools(self.original_image)
+
+        # x1, x2, y1, y2 = x/6, 5*x/6, 3*y/4, y
+        x1, x2, y1, y2 = p1[0], p2[0], p1[1], p2[1]
+
+        y_center = (y1+y2)/2
+        x_center = (x1+x2)/2
+        region_of_interest = self.image[y1:y2,x1:x2]
+
+        if region_of_interest.any():
+            y_focused_width, x_focused_width = region_of_interest.shape
+            x_detected = region_of_interest.sum(axis=0).argsort()[-1]
+
+            offset = x_detected - (x_focused_width/2)
+
+            self.draw_line((x/2, y_center), (int(x/2+ offset), y_center))
+
+            self.offset_mapped_image.add_text_to_image("offset: {}".format(offset), (x_center, y_center))
+            self.offset_mapped_image.draw_line((x/2, y_center), (int(x/2+ offset), y_center))
+            
+            self.offset_mapped_image.draw_rectangle((x1, y1), (x2, y2))
+            self.offset_mapped_image.draw_line((x/2, y1), (x/2, y2))
+
+        return 0
+
+    def show_correct_path(self):
+        return
 
     def get_bounding_box(self, draw = True):
         contours = self.get_contours()
-        areas = []
+        boxes = []
         shape = self.image.shape
 
         # NOTE: new_image displays in RBG
         new_image = np.zeros((shape[0], shape[1], 3), dtype = np.uint8)
         for i, c in enumerate(contours):
             area = cv.contourArea(c)
-            # hull = cv.convexHull(c)
+            hull = cv.convexHull(c)
             x, y, w, h = cv.boundingRect(c)
-            areas.append([x, y, w, h, area])
+            boxes.append([x, y, w, h, area])
 
             if draw:
-                cv.rectangle(self.image, (x,y), (x+w, y+h), (255, 255, 0), 1)
-                cv.rectangle(new_image, (x,y), (x+w, y+h), (0, 0, 200), 1)
+                # cv.rectangle(self.image, (x,y), (x+w, y+h), (255, 255, 0), 1)
+                cv.rectangle(new_image, (x,y), (x+w, y+h), (255, 0, 0), 1)
+
                 # cv.drawContours(self.image, hull, -1, (255, 255, 255), 1)
+                # cv.drawContours(new_image, hull, -1, (255, 0, 0), 1)
+
                 if area > 10 and area < 100:
-                    self.add_text_to_image("area:{}".format(area), (x,y))
+                    # self.add_text_to_image("area:{}".format(area), (x,y))
+                    pass
                 if w > 30:
                     # NOTE: showing nearest and widest detected shapes
-                    cv.rectangle(new_image, (x,y), (x+w, y+h), (255, 0, 0), 1)
+                    # cv.rectangle(new_image, (x,y), (x+w, y+h), (255, 0, 0), 1)
 
                     x_offset = ((2*x) + w)/2 - 50
                     y_offset = ((2*y) + h)/2 - 50
-                    if y > self.image.shape[0]/2 and w > 50:
-                        cv.rectangle(new_image, (x,y), (x+50, y+50), (255, 255, 0), 1)
+                  
+                    # if y > self.image.shape[0]/2 and w > 50:
+                    #     cv.rectangle(new_image, (x,y), (x+50, y+50), (255, 255, 0), 1)
         
         new_image = cv.cvtColor(new_image, cv.COLOR_RGB2BGR)
         CVTools(new_image).display_image('medium', 'processing_boxing')
-        return areas
+        return boxes
 
     def get_closest_box(self, boxes):
         # TODO: finish implementation. return closest big box
