@@ -5,7 +5,7 @@ import constants
 import numpy as np
 from PIL import Image
 from data_reader import DataStream
-import tensorflow as tf
+# import tensorflow as tf
 import cv2 as cv
 
 import pdb
@@ -142,7 +142,7 @@ def detect_lines(thres1, thres2, thresh3, thresh4):
             processed.offset_mapped_image.draw_circle(avg_offset_coordinates, color=constants.RED)
             # processed.offset_mapped_image.draw_circle(weighted_avg_offset_coordinates, color=constants.GREEN)
             # processed.offset_mapped_image.draw_line((x/2,y), avg_offset_coordinates)
-            
+            processed.offset_mapped_image.enable_image_display()
             processed.offset_mapped_image.display_image('processing_offset')
 
             if boxes:

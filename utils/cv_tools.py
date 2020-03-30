@@ -4,8 +4,8 @@ import math
 import os
 import numpy as np
 from PIL import Image
-from data_reader import DataStream
-import tensorflow as tf
+# from data_reader import DataStream
+# import tensorflow as tf
 import cv2 as cv
 
 import pdb
@@ -122,7 +122,7 @@ class CVTools(object):
 
     def get_contours(self):
         # TODO: try other modes
-        contours, hierarchy = cv.findContours(self.image, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv.findContours(self.image, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         return contours
     
     def detect_lines(self):
