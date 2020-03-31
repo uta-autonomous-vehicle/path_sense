@@ -265,7 +265,7 @@ class StraightLineOffsetDetector(object):
             weighted_offset += (0.1 * current_sample) * offset_iter
 
         avg_offset = offset/(1.0 * (sampling-1))
-        p_value_offset = avg_offset / (x/2)
+        p_value_offset = avg_offset / (x/4)
         steering_offset = 0.34 * p_value_offset
         
         if math.fabs(steering_offset) > 0.34:
