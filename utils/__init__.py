@@ -1,1 +1,1 @@
-from cv_tools import CVTools
+from cv_tools import CVTools, StraightLineOffsetDetector

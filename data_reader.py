@@ -3,7 +3,7 @@ import constants
 import cv2 as cv
 from PIL import Image
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 
 class ImageStream(object):
     def __init__(self, source_dir):
