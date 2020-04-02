@@ -9,7 +9,7 @@ from PIL import Image
 import cv2 as cv
 
 import pdb
-from test import Follower
+# from test import Follower
 import math
 
 from logger import logger
