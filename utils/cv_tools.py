@@ -150,7 +150,7 @@ class CVTools(object):
             x_detected = region_of_interest.sum(axis=0).argsort()[-1]
 
             offset = x_focused_width/2 - x_detected
-            logger.info("offset for space x=(%s, %s) y=(%s, %s): %s", x1, x2, y1, y2, offset)
+            # logger.info("offset for space x=(%s, %s) y=(%s, %s): %s", x1, x2, y1, y2, offset)
 
             # self.draw_line((x/2, y_center), (int(x/2 - offset), y_center))
 
@@ -267,13 +267,10 @@ class StraightLineOffsetDetector(object):
         avg_offset = offset/(1.0 * (sampling-1))
         p_value_offset = avg_offset / (x/4)
         steering_offset = 0.34 * p_value_offset
-        
-        if math.fabs(steering_offset) > 0.34:
-            return None
 
-        logger.info("average offset for detector space: %s", avg_offset)
-        logger.info("average offset for detector space: %s%%", p_value_offset)
-        logger.info("steering offset for detector space: %s%%", steering_offset)
+        # logger.info("average offset for detector space: %s", avg_offset)
+        # logger.info("average offset for detector space: %s%%", p_value_offset)
+        # logger.info("steering offset for detector space: %s%%", steering_offset)
 
         self.image.offset_mapped_image.display_image()
 
