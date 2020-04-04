@@ -149,7 +149,11 @@ class CVTools(object):
             y_focused_width, x_focused_width = region_of_interest.shape
             x_detected = region_of_interest.sum(axis=0).argsort()[-1]
 
-            offset = x_focused_width/2 - x_detected
+            # NOTE: making up for the right camera being off axis
+            x_focused_center = x_focused_width / 2
+            x_focused_center -= 200
+
+            offset = x_focused_center - x_detected
             # logger.info("offset for space x=(%s, %s) y=(%s, %s): %s", x1, x2, y1, y2, offset)
 
             # self.draw_line((x/2, y_center), (int(x/2 - offset), y_center))
@@ -245,7 +249,7 @@ class StraightLineOffsetDetector(object):
 
         y,x = self.image.image.shape
 
-        sampling = 50
+        sampling = 10
         offset = 0
         weighted_offset = 0
         for current_sample in range(1, sampling):
@@ -262,9 +266,10 @@ class StraightLineOffsetDetector(object):
             offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to))
             # print " offset_iter ", offset_iter
             offset += offset_iter
-            weighted_offset += (0.1 * current_sample) * offset_iter
+            # weighted_offset += (0.1 * current_sample) * offset_iter
 
         avg_offset = offset/(1.0 * (sampling-1))
+
         p_value_offset = avg_offset / (x/4)
         steering_offset = 0.34 * p_value_offset
 
