@@ -28,11 +28,12 @@ class CVTools(object):
         No methods return self, do hierarchical calling isn't possible.
 
     """
-    def __init__(self, image, tool_instance_name = 'default'):
+    def __init__(self, image, image_can_display = True, tool_instance_name = 'default - '):
         self.original_image = image
         self.image = image
         self.tool_instance_name = tool_instance_name
         self.image_shape = image.shape
+        self.image_can_display = image_can_display
 
         self.offset_mapped_image = None
 
@@ -49,12 +50,11 @@ class CVTools(object):
         self.image_is_binary = False
         self.image_is_processed_for_edges = False
         self.image_is_displayed = False
-        self.image_can_display = False
 
-    def display_image(self, name = 'default'):
+    def display_image(self, name = 'default', custom_image = None):
         if self.image_can_display:
-            cv.namedWindow(self.tool_instance_name + name, cv.WINDOW_NORMAL)
-            cv.imshow(self.tool_instance_name + name, self.image)
+            cv.namedWindow(name, cv.WINDOW_NORMAL)
+            cv.imshow(name, custom_image or self.image)
     
     def resize_window(self, name = 'default', size = 'small'):
         if size == 'small':
@@ -208,7 +208,7 @@ class CVTools(object):
         if draw:
             logger.info("larges contour area found at: %s", largest_box_area)
             new_image = cv.cvtColor(new_image, cv.COLOR_RGB2BGR)
-            CVTools(new_image).display_image('processing_boxing')
+            # CVTools(new_image).display_image('processing_boxing')
         return boxes
 
     def get_closest_box(self, boxes):
@@ -239,9 +239,10 @@ class CVTools(object):
 
 
 class StraightLineOffsetDetector(object):
-    def __init__(self, image):
-        self.image = CVTools(image.copy(), '2')
-        self.image.disable_image_display()
+    def __init__(self, image, display_image = False):
+        self.image = CVTools(image.copy(), display_image, '2')
+
+        # if display_image: self.image.enable_image_display()
 
     def get_steering_angle(self):
         self.image.filter_color()
@@ -277,6 +278,7 @@ class StraightLineOffsetDetector(object):
         # logger.info("average offset for detector space: %s%%", p_value_offset)
         # logger.info("steering offset for detector space: %s%%", steering_offset)
 
-        self.image.offset_mapped_image.display_image()
+        # self.image.display_image("original image")
+        # self.image.offset_mapped_image.display_image("processed image")
 
         return steering_offset
