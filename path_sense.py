@@ -126,17 +126,20 @@ def detect_lines(data_stream, dataset):
         
         # logger.debug("image size %s", image.shape)
         tool = CVTools(image)
-        tool.display_image('test')
-        tool.resize_window('test')
-        # detector = StraightLineOffsetDetector(image, True)
-        # logger.debug("%s steering", detector.get_steering_angle())
+        # tool.display_image('test')
         
-        # tool.display_image("1", detector.image)
-        # if detector.image.offset_mapped_image:
-        # CVTools(detector.image.offset_mapped_image.image, True).display_image('original_image_2')
+        detector = StraightLineOffsetDetector(image, True)
+        
+        # detector.filter_color("yellow")
+        detector.filter_color("pink")
 
-        # if cv.waitKey(1) == ord('q'):
-        #     break
+        logger.debug("%s steering", detector.get_steering_angle())
+        
+        cv.imshow("2", detector.image.image)
+        # cv.imshow("3", detector.image.offset_mapped_image.image)
+
+        if cv.waitKey(1) == ord('q'):
+            break
 
 
 if __name__ == "__main__":
@@ -168,7 +171,7 @@ if __name__ == "__main__":
         
         logger.debug("reading dataset %s with %s items", dataset_item, len(list_of_images))
         for image_index in range( len(list_of_images) + 100):
-            logger.info("reading image: %s", image_index)
+            # logger.info("reading image: %s", image_index)
             image_name = '{}.jpg'.format(image_index)
             if image_name in list_of_images:
                 # image = data_stream.get_item(image_name)
