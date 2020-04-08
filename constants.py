@@ -1,5 +1,5 @@
 # NOTE: copy datasets to dir IMAGE_DIR. naming is not important
-IMAGE_DIR = '../datasets/dataset_cropped_line'
+IMAGE_DIR = '/Users/harshilpatel/Documents/projects/racecar/datasets'
 VIDEO_DIR = 'asset/videos'
 
 STREAM_TYPE_IMAGES = 'images'

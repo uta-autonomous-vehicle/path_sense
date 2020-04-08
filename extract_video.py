@@ -5,24 +5,24 @@ import constants
 
 def convert_images_to_video_seq(base_path):
     fourcc = cv.VideoWriter_fourcc(*'mp4v')
-    left_camera_video = cv.VideoWriter(base_path + '/left_camera.mp4', fourcc, 1,(1280,720))
 
     number_of_items = os.listdir(os.path.join(base_path, 'left_camera'))
-    for i in range(len(number_of_items)):
-        path_name = base_path + '/left_camera/{}.jpg'.format(i)
-        if os.path.exists(os.path.abspath(path_name)):
-            left_camera_video.write(cv.imread(path_name))
+    if number_of_items:
+        left_camera_video = cv.VideoWriter(base_path + '/left_camera.mp4', fourcc, 15,(1280,720))
+        for i in range(len(number_of_items)):
+            path_name = base_path + '/left_camera/{}.jpg'.format(i)
+            if os.path.exists(os.path.abspath(path_name)):
+                left_camera_video.write(cv.imread(path_name))
+        left_camera_video.release()
 
-    right_camera_video = cv.VideoWriter(base_path + '/right_camera.mp4', fourcc, 1,(1280,720))
     number_of_items = os.listdir(os.path.join(base_path, 'right_camera'))
-    for i in range(len(number_of_items)):
-        path_name = base_path + '/right_camera/{}.jpg'.format(i)
-        if os.path.exists(os.path.abspath(path_name)):
-            right_camera_video.write(cv.imread(path_name))
-
-
-    left_camera_video.release()
-    right_camera_video.release()
+    if number_of_items:
+        right_camera_video = cv.VideoWriter(base_path + '/right_camera.mp4', fourcc, 15,(1280,720))
+        for i in range(len(number_of_items)):
+            path_name = base_path + '/right_camera/{}.jpg'.format(i)
+            if os.path.exists(os.path.abspath(path_name)):
+                right_camera_video.write(cv.imread(path_name))
+        right_camera_video.release()
 
 
 current_path = os.getcwd()
