@@ -274,7 +274,7 @@ class StraightLineOffsetDetector(object):
             y_from = y * (y_range)/y_partitions
             y_to = y * (y_range + 1)/y_partitions
 
-            offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to))
+            offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to), center_offset)
             if offset_iter != -1:
                 path_detected_for_regions.append(True)
                 # print " offset_iter ", offset_iter
