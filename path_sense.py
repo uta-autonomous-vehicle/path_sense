@@ -131,9 +131,9 @@ def detect_lines(data_stream, dataset):
         detector = StraightLineOffsetDetector(image, True)
         
         # detector.filter_color("yellow")
-        detector.filter_color("pink")
+        detector.filter_color("yellow")
 
-        logger.debug("%s steering", detector.get_steering_angle())
+        logger.debug("%s steering", detector.get_steering_angle(0))
         
         cv.imshow("2", detector.image.image)
         # cv.imshow("3", detector.image.offset_mapped_image.image)

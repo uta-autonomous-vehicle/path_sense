@@ -254,7 +254,7 @@ class StraightLineOffsetDetector(object):
             self.image.filter_color(PINK_COLOR_RANGE)
 
     def get_steering_angle(self, center_offset):
-        self.image.filter_color()
+        # self.image.filter_color()
         # boxes = self.image.get_bounding_box()
 
         y,x = self.image.image.shape
