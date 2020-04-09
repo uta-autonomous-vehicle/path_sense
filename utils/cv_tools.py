@@ -128,7 +128,7 @@ class CVTools(object):
     def detect_lines(self):
         return
     
-    def get_offset_from_center_in_rectangle_space(self, p1 = (0,0), p2 = (0,01)):
+    def get_offset_from_center_in_rectangle_space(self, p1 = (0,0), p2 = (0,0), center_offset = -100):
         if not self.image_is_color_filtered:
             logger.error("image is not color filtered before requesting offset calculation")
             return 0
@@ -151,7 +151,7 @@ class CVTools(object):
 
             # NOTE: making up for the right camera being off axis
             x_focused_center = x_focused_width / 2
-            x_focused_center -= 200
+            x_focused_center += center_offset
 
             offset = x_focused_center - x_detected
             # logger.info("offset for space x=(%s, %s) y=(%s, %s): %s", x1, x2, y1, y2, offset)
@@ -243,7 +243,7 @@ class StraightLineOffsetDetector(object):
         self.image = CVTools(image.copy(), '2')
         self.image.disable_image_display()
 
-    def get_steering_angle(self):
+    def get_steering_angle(self, center_offset):
         self.image.filter_color()
         # boxes = self.image.get_bounding_box()
 
@@ -263,7 +263,7 @@ class StraightLineOffsetDetector(object):
             y_from = y * (y_range)/y_partitions
             y_to = y * (y_range + 1)/y_partitions
 
-            offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to))
+            offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to), center_offset)
             # print " offset_iter ", offset_iter
             offset += offset_iter
             # weighted_offset += (0.1 * current_sample) * offset_iter
