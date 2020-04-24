@@ -18,6 +18,13 @@ from utils.logger import logger
 IMAGE_HEIGHT = 720
 IMAGE_WIDTH = 1280
 
+if os.environ("ROS_IP"):
+    import rospy
+    IMAGE_HEIGHT = rospy.get_param("/uta_racecar/ZED_IMAGE_HEIGHT")
+    IMAGE_WIDTH = rospy.get_param("/uta_racecar/ZED_IMAGE_WIDTH")
+
+IMAGE_SHAPE = (IMAGE_WIDTH, IMAGE_HEIGHT)
+
 class LaneDetector(object):
     def __init__(self, data_set = ''):
         return
@@ -35,13 +42,13 @@ class LaneDetector(object):
         return None
 
 def test_steering_angle_for_image(image):
-    min_height = 720/3
-    max_height = 720
+    min_height = IMAGE_HEIGHT/3
+    max_height = IMAGE_HEIGHT
 
     min_width = 0
-    max_width = 1280/2
+    max_width = IMAGE_WIDTH/2
 
-    image2 = np.zeros((720, 1280))
+    image2 = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH))
 
     processed = CVTools(image.copy())
     processed.enable_image_display()
