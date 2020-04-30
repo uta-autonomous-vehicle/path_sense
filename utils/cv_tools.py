@@ -21,6 +21,7 @@ RED = (0, 0, 255)
 YELLOW = (255, 255, 255)
 
 YELLOW_COLOR_RANGE = ((58, 30, 30), (64, 100, 100))
+PINK_COLOR_RANGE = ((358, 30, 30), (360, 100, 100))
 
 class CVTools(object):
     """
@@ -28,11 +29,12 @@ class CVTools(object):
         No methods return self, do hierarchical calling isn't possible.
 
     """
-    def __init__(self, image, tool_instance_name = 'default'):
+    def __init__(self, image, image_can_display = True, tool_instance_name = 'default - '):
         self.original_image = image
         self.image = image
         self.tool_instance_name = tool_instance_name
         self.image_shape = image.shape
+        self.image_can_display = image_can_display
 
         self.offset_mapped_image = None
 
@@ -49,12 +51,11 @@ class CVTools(object):
         self.image_is_binary = False
         self.image_is_processed_for_edges = False
         self.image_is_displayed = False
-        self.image_can_display = False
 
     def display_image(self, name = 'default'):
         if self.image_can_display:
-            cv.namedWindow(self.tool_instance_name + name, cv.WINDOW_NORMAL)
-            cv.imshow(self.tool_instance_name + name, self.image)
+            cv.namedWindow(name, cv.WINDOW_NORMAL)
+            cv.imshow(name, self.image)
     
     def resize_window(self, name = 'default', size = 'small'):
         if size == 'small':
@@ -109,9 +110,10 @@ class CVTools(object):
         # returns a percent value where it found the large object
         return (maxes_sorted * 50) / (self.image.shape[1]*0.1)
     
-    def filter_color(self, low = YELLOW_COLOR_RANGE[0], high = YELLOW_COLOR_RANGE[1]):
+    def filter_color(self, color_range = YELLOW_COLOR_RANGE):
         # NOTE: color space is different for opencv  - [(0-179), (0-255), (0-255)] vs [(0-360), (0-100), (0-100)]
         multiplier_hsv_for_opencv = [0.5, 2.55, 2.55]
+        low, high = color_range
         low_hsv = np.multiply(low, multiplier_hsv_for_opencv)
         high_hsv = np.multiply(high, multiplier_hsv_for_opencv)
 
@@ -144,6 +146,9 @@ class CVTools(object):
         x_center = (x1+x2)/2
         region_of_interest = self.image[y1:y2,x1:x2]
         offset = 0
+
+        if not region_of_interest.any():
+            return -1
 
         if region_of_interest.any():
             y_focused_width, x_focused_width = region_of_interest.shape
@@ -208,7 +213,7 @@ class CVTools(object):
         if draw:
             logger.info("larges contour area found at: %s", largest_box_area)
             new_image = cv.cvtColor(new_image, cv.COLOR_RGB2BGR)
-            CVTools(new_image).display_image('processing_boxing')
+            # CVTools(new_image).display_image('processing_boxing')
         return boxes
 
     def get_closest_box(self, boxes):
@@ -239,12 +244,17 @@ class CVTools(object):
 
 
 class StraightLineOffsetDetector(object):
-    def __init__(self, image):
-        self.image = CVTools(image.copy(), '2')
-        self.image.disable_image_display()
+    def __init__(self, image, display_image = False):
+        self.image = CVTools(image.copy(), display_image, '2')
+
+    def filter_color(self, color = 'yellow'):
+        if color == 'yellow':
+            self.image.filter_color(YELLOW_COLOR_RANGE)
+        elif color == 'pink':
+            self.image.filter_color(PINK_COLOR_RANGE)
 
     def get_steering_angle(self, center_offset):
-        self.image.filter_color()
+        # self.image.filter_color()
         # boxes = self.image.get_bounding_box()
 
         y,x = self.image.image.shape
@@ -252,6 +262,7 @@ class StraightLineOffsetDetector(object):
         sampling = 10
         offset = 0
         weighted_offset = 0
+        path_detected_for_regions = []
         for current_sample in range(1, sampling):
             x_partitions = 5*current_sample
             y_partitions = 3*sampling
@@ -264,9 +275,14 @@ class StraightLineOffsetDetector(object):
             y_to = y * (y_range + 1)/y_partitions
 
             offset_iter = self.image.get_offset_from_center_in_rectangle_space((x_from, y_from), (x_to, y_to), center_offset)
-            # print " offset_iter ", offset_iter
-            offset += offset_iter
-            # weighted_offset += (0.1 * current_sample) * offset_iter
+            if offset_iter != -1:
+                path_detected_for_regions.append(True)
+                # print " offset_iter ", offset_iter
+                offset += offset_iter
+                # weighted_offset += (0.1 * current_sample) * offset_iter
+
+        if not path_detected_for_regions:
+            return -1
 
         avg_offset = offset/(1.0 * (sampling-1))
 
@@ -277,6 +293,7 @@ class StraightLineOffsetDetector(object):
         # logger.info("average offset for detector space: %s%%", p_value_offset)
         # logger.info("steering offset for detector space: %s%%", steering_offset)
 
-        self.image.offset_mapped_image.display_image()
+        # self.image.display_image("original image")
+        # self.image.offset_mapped_image.display_image("processed image")
 
         return steering_offset
