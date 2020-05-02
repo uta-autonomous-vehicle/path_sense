@@ -18,7 +18,7 @@ from utils.logger import logger
 IMAGE_HEIGHT = 720
 IMAGE_WIDTH = 1280
 
-if os.environ("ROS_IP"):
+if os.environ.get("ROS_IP"):
     import rospy
     IMAGE_HEIGHT = rospy.get_param("/uta_racecar/ZED_IMAGE_HEIGHT")
     IMAGE_WIDTH = rospy.get_param("/uta_racecar/ZED_IMAGE_WIDTH")
