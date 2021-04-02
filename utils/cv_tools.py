@@ -23,6 +23,11 @@ YELLOW = (255, 255, 255)
 YELLOW_COLOR_RANGE = ((58, 30, 30), (64, 100, 100))
 PINK_COLOR_RANGE = ((358, 30, 30), (360, 100, 100))
 
+if os.environ.get("ROS_IP"):
+    import rospy
+    from cv_bridge import CvBridge, CvBridgeError
+    from sensor_msgs.msg import Joy, Image
+
 class CVTools(object):
     """
         All processing is stored locally when using an instance of this object. to self.image
@@ -39,7 +44,17 @@ class CVTools(object):
         self.offset_mapped_image = None
 
         self.set_tracking_values()
+
+        self.pub = None
+        if os.environ.get("ROS_IP"):
+            self.pub = rospy.Publisher('/uta_racecar/cvtools', Image, queue_size=10)
     
+    def publish_image(self, image):
+        self.pub.publish(self.get_ros_msg(image))
+
+    def get_ros_msg(self, image):
+        return CvBridge().cv2_to_imgmsg(image, encoding = 'bgr8')
+
     def disable_image_display(self):
         self.image_can_display = False
 
@@ -246,6 +261,7 @@ class CVTools(object):
 class StraightLineOffsetDetector(object):
     def __init__(self, image, display_image = False):
         self.image = CVTools(image.copy(), display_image, '2')
+        self.image.publish_image(image)
 
     def filter_color(self, color = 'yellow'):
         if color == 'yellow':
@@ -296,4 +312,5 @@ class StraightLineOffsetDetector(object):
         # self.image.display_image("original image")
         # self.image.offset_mapped_image.display_image("processed image")
 
+        # self.image.publish_image(self.image.offset_mapped_image.image)
         return steering_offset
